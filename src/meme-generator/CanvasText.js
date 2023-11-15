@@ -16,7 +16,7 @@ export default class CanvasText extends Component {
         }
     }
     textFieldOnDblClick = (e) => {
-        // Seçili olan textin indexini atar
+    
         const textNode = e.currentTarget.attrs;
         const absolutePosition = e.currentTarget.absolutePosition();
         this.setState({

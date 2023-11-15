@@ -222,7 +222,7 @@ class MemeGenerator extends Component {
           <Col id="canvasDiv" md={4}   style={{
     border: '1px solid #ced4da', // Add a border
     boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', // Add a box shadow
-    backgroundColor: '#f8f9fa', // Add a very light grey background color
+    
   }} >
             <Row>
               <label className="btn btn-outline-primary  col m-2">

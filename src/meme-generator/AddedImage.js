@@ -16,20 +16,7 @@ export default class AddedImage extends Component {
     this.loadImage();
 
   }
-  checkNode() {
-    // transormerı ayarlar
-    const selectedNode = this.imageNode;
-    const deleteNode = this.deleteRef.current;
-    this.transformer.add(deleteNode)
-    if (this.state.selected) {
-      this.transformer.nodes([selectedNode]);
-      deleteNode.position(this.transformer.findOne('.top-right').position());
-    }
-    else {
-      this.transformer.detach();
-    }
-    this.transformer.getLayer().batchDraw();
-  }
+
   componentDidUpdate(oldProps) {
     if (oldProps.src !== this.props.src) {
       this.loadImage();
@@ -43,7 +30,7 @@ export default class AddedImage extends Component {
     this.handleSelected()
 
     if (this.state.selected === true) {
-      this.checkNode()
+     
       this.props.selectedImage(this.props.index);
     }
     else {
@@ -56,8 +43,8 @@ export default class AddedImage extends Component {
     this.image = new window.Image();
     this.image.crossOrigin = "anonymous";
     this.image.src = this.props.src;
-    this.image.width = 300;
-    this.image.width = 300;
+    this.image.height = 200;
+    this.image.width = 200;
 
     this.image.addEventListener('load', this.handleLoad);
   }
@@ -67,7 +54,7 @@ export default class AddedImage extends Component {
     this.setState({
       image: this.image
     });
-    this.checkNode();
+   
   }
   handleSelected = () => {
     this.setState(state => ({
@@ -93,13 +80,7 @@ export default class AddedImage extends Component {
         {this.state.selected &&
           <Group>
 
-            <Transformer
-              ref={node => {
-                this.transformer = node;
-              }}
-              onTransformEnd={() => this.handleSelected()}
-              onTransform={(e) => { this.deleteRef.current.position(e.currentTarget.findOne('.top-right').position()) }}
-            />
+            
             <CloseButton deleteRef={this.deleteRef} delete={this.props.deleteImage} />
           </Group>
         }

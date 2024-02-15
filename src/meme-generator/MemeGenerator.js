@@ -75,73 +75,45 @@ class MemeGenerator extends Component {
   };
   addImage = (e) => {
     const files = e.target.files;
-    let reader = new FileReader();
-    reader.readAsDataURL(files[0]);
-
-    reader.onload = (e) => {
-      this.setState((state) => ({
-        images: [
-          ...state.images,
-          {
+  
+    if (files.length > 0) {
+      const reader = new FileReader();
+  
+      reader.onload = (e) => {
+        const fileName = files[0].name; // Extract filename from the file object
+  
+        this.setState((state) => {
+          const newImage = {
             properties: {
               x: 40,
               y: 50,
             },
             src: e.target.result,
-          },
-        ],
-        selectedImage: state.images.length,
-      }));
-    };
-  };
-  handleTextChange = (key, value) => {
-    if (this.state.selectedText === null) {
-      alert("please select a text");
-      return;
+            name: fileName, // Include the file name in the state
+          };
+  
+          const updatedImages = [...state.images, newImage];
+          updatedImages.sort((a, b) => a.name.localeCompare(b.name));
+  
+          return {
+            images: updatedImages,
+            selectedImage: updatedImages.length - 1,
+          };
+        });
+      };
+  
+      reader.readAsDataURL(files[0]);
     }
-
-    const inputs = this.state.inputs;
-    inputs[this.state.selectedText][key] = value;
-    inputs[this.state.selectedText].selected = false;
-    this.setState({
-      inputs,
-    });
   };
-  selectText = (index, textarea) => {
-    const inputs = this.state.inputs;
-    const oldSelected = this.state.selectedText;
-    if (oldSelected != null) {
-      inputs[oldSelected].selected = false;
-    }
-    if (index != null) {
-      inputs[index].selected = true;
-    }
-    this.setState({
-      inputs,
-      selectedText: index,
-      selectedTextarea: textarea,
-    });
-  };
+  
+  
+ 
   selectImage = (index) => {
     this.setState({
       selectedImage: index,
     });
   };
-  deleteText = (index) => {
-    const id = index;
-    if (id != null) {
-      const inputs = this.state.inputs;
-      inputs.splice(id, 1);
 
-      this.setState({
-        inputs,
-        selectedText: null,
-        selectedTextarea: null,
-      });
-    } else {
-      alert("please select a text");
-    }
-  };
   handleDragEnd = (target, index) => {
     let inputs = this.state.inputs;
   inputs[index].x = target.x();
@@ -169,6 +141,8 @@ class MemeGenerator extends Component {
 
     var img = new Image();
     img.onload = () => {
+      img.width = 600;
+      img.height = 600;
       let stageWidth = img.width;
       let stageHeight = img.height;
       stageWidth = stageWidth > maxStageWidth ? maxStageWidth : stageWidth;
@@ -211,35 +185,24 @@ class MemeGenerator extends Component {
     return (
       <Container className="pl-4 pr-4" fluid>
         <Row>
-          <Col md={4}>
-            <TextProperties
-              handleTextChange={this.handleTextChange}
-              selectedText={selectedText}
-              text={inputs[selectedText]}
-            />
-          </Col>
+          
 
-          <Col id="canvasDiv" md={4}   style={{
+          <Col id="canvasDiv" md={8}   style={{
     border: '1px solid #ced4da', // Add a border
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', // Add a box shadow
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+    width: '600px', // Add a box shadow
     
   }} >
             <Row>
               <label className="btn btn-outline-primary  col m-2">
-                Change Background image
+                Add Plate
                 <FormFile onChange={(e) => this.addBackground(e)} hidden />
               </label>
               <label className="btn btn-outline-primary  col m-2 d-flex">
-                <span className="m-auto">Add Image</span>
+                <span className="m-auto">Add Food</span>
                 <FormFile onChange={(e) => this.addImage(e)} hidden />
               </label>
-              <Button
-                variant="outline-primary"
-                className="col m-2"
-                onClick={() => this.addText()}
-              >
-                Add Text
-              </Button>
+             
             </Row>
             <Row>
               <Col className="pt-2">
@@ -287,24 +250,7 @@ class MemeGenerator extends Component {
                           );
                         }
                       })}
-                    {inputs &&
-                      inputs.map((input, index) => {
-                        return (
-                          <CanvasText
-                            input={input}
-                            draggable={true}
-                            handleDragEnd={this.handleDragEnd}
-                            stagePosition={() =>
-                              this.stageRef.container().getBoundingClientRect()
-                            }
-                            handleTextChange={this.handleTextChange}
-                            index={index}
-                            key={index}
-                            selectedText={this.selectText}
-                            deleteText={() => this.deleteText(index)}
-                          />
-                        );
-                      })}
+     
                   </Layer>
                 </Stage>
               </Col>
@@ -312,11 +258,7 @@ class MemeGenerator extends Component {
           </Col>
 
           <Col className="memegenerator-right-col" md={4}>
-            <Size
-              stageWidth={stageWidth}
-              stageHeight={stageHeight}
-              handleSizeChange={this.handleSizeChange}
-            />
+            
             <Row>
               <Col>
                 <Download

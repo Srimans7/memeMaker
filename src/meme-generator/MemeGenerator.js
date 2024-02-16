@@ -18,13 +18,17 @@ import { FormFile, Button, Row, Col, Container } from "react-bootstrap";
 class MemeGenerator extends Component {
   state = {
     inputs: [],
-    images: [],
+    images: {
+      stage1: [],
+      stage2: [],
+    },
     backgroundImageSrc: null,
     backgroundImageName: null,
     templateName: null,
     selectedText: null,
     selectedTextarea: null,
     selectedImage: null,
+    selectedStage: "stage1", // Initial stage selection
     src: "",
     stageWidth,
     stageHeight,
@@ -40,64 +44,39 @@ class MemeGenerator extends Component {
     });
   }
 
-  addText = () => {
-    const inputs = this.state.inputs;
-    if (this.state.selectedText != null) {
-      inputs[this.state.selectedText].selected = false;
-    }
-    this.setState((state) => ({
-      inputs: [
-        ...inputs,
-        {
-          x: 50,
-          y: 50,
-          text: "Enter the text",
-          fontSize: 25,
-          selected: true,
-          fontFamily: "Impact",
-          fill: "#ffffff",
-          strokeWidth: 1.5,
-          stroke: "#000000",
-          shadowColor: "#000000",
-          align: "center",
-          padding: 5,
-          letterSpacing: 1,
-          lineHeight: 1,
-          textDecoration: "none",
-          verticalAlign: "top",
-          opacity: 1,
-          shadowOpacity: 1,
-          shadowBlur: 0,
-        },
-      ],
-      selectedText: state.inputs.length,
-    }));
-  };
   addImage = (e) => {
     const files = e.target.files;
+    const selectedStage = this.state.selectedStage;
   
     if (files.length > 0) {
       const reader = new FileReader();
   
       reader.onload = (e) => {
-        const fileName = files[0].name; // Extract filename from the file object
+        const fileName = files[0].name;
+  
+        const newImage = {
+          properties: {
+            x: 40,
+            y: 50,
+          },
+          src: e.target.result,
+          name: fileName,
+        };
   
         this.setState((state) => {
-          const newImage = {
-            properties: {
-              x: 40,
-              y: 50,
-            },
-            src: e.target.result,
-            name: fileName, // Include the file name in the state
-          };
+          const updatedStageImages = [
+            ...state.images[selectedStage],
+            newImage,
+          ];
   
-          const updatedImages = [...state.images, newImage];
-          updatedImages.sort((a, b) => a.name.localeCompare(b.name));
+          updatedStageImages.sort((a, b) => a.name.localeCompare(b.name));
   
           return {
-            images: updatedImages,
-            selectedImage: updatedImages.length - 1,
+            images: {
+              ...state.images,
+              [selectedStage]: updatedStageImages,
+            },
+            selectedImage: updatedStageImages.length - 1,
           };
         });
       };
@@ -107,7 +86,14 @@ class MemeGenerator extends Component {
   };
   
   
- 
+  
+  // Other methods...
+
+  selectStage = (e, n) => {
+    this.setState({ selectedStage: n });
+    this.addImage(e);
+  };
+  
   selectImage = (index) => {
     this.setState({
       selectedImage: index,
@@ -187,72 +173,106 @@ class MemeGenerator extends Component {
         <Row>
           
 
-          <Col id="canvasDiv" md={8}   style={{
-    border: '1px solid #ced4da', // Add a border
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-    width: '600px', // Add a box shadow
-    
-  }} >
+        <Col
+            id="canvasDiv"
+            md={8}
+            style={{
+              border: '1px solid #ced4da',
+              boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+              width: '600px',
+            }}
+          >
             <Row>
               <label className="btn btn-outline-primary  col m-2">
                 Add Plate
                 <FormFile onChange={(e) => this.addBackground(e)} hidden />
               </label>
-              <label className="btn btn-outline-primary  col m-2 d-flex">
-                <span className="m-auto">Add Food</span>
-                <FormFile onChange={(e) => this.addImage(e)} hidden />
+              <label className="btn btn-outline-primary col m-2 d-flex">
+                <span className="m-auto">Add Food (Stage 2)</span>
+                <FormFile onChange={(e) => this.selectStage(e,'stage2')} hidden />
               </label>
-             
+              <label className="btn btn-outline-primary col m-2 d-flex">
+                <span className="m-auto">Add Food (Stage 1)</span>
+                <FormFile onChange={(e) => this.selectStage(e,'stage1')} hidden />
+              </label>
             </Row>
             <Row>
               <Col className="pt-2">
-               <Stage
-  className="justify-content-center mb-5 d-flex"
-  width={stageWidth}
-  height={stageHeight}
-  style={{
-    border: '1px solid #ced4da', // Add a border
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', // Add a box shadow
-    backgroundColor: '#f8f9fa', // Add a very light grey background color
-  }}
-  ref={(node) => {
-    this.stageRef = node;
-  }}
->
-
-                  <Layer
+                <div className="d-flex">
+                  <Stage
+                    className="justify-content-center mb-5"
+                    width={stageWidth / 2}
+                    height={stageHeight}
+                    style={{
+                      border: '1px solid #ced4da',
+                      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                      backgroundColor: '#f8f9fa',
+                    }}
                     ref={(node) => {
-                      this.layerRef = node;
+                      this.stageRef = node;
                     }}
                   >
-                    <CanvasImage
-                      src={backgroundImageSrc ? backgroundImageSrc : src}
-                      width={stageWidth}
-                      triggerCors={triggerCors}
-                      height={stageHeight}
-                      draggable={true}
-                    />
-                    {images &&
-                      images.map((image, index) => {
-                        if (image === undefined) {
-                          return null;
-                        } else {
-                          return (
-                            <AddedImage
-                              src={image.src}
-                              properties={image.properties}
-                              key={index}
-                              index={index}
-                              selectedImage={this.selectImage}
-                              deleteImage={this.deleteImage}
-                              draggable={true}
-                            />
-                          );
-                        }
-                      })}
-     
-                  </Layer>
-                </Stage>
+                    <Layer>
+  <CanvasImage
+    src={backgroundImageSrc ? backgroundImageSrc : src}
+    width={stageWidth}
+    triggerCors={triggerCors}
+    height={stageHeight}
+    draggable={true}
+  />
+  {images.stage1 &&
+    images.stage1.map((image, index) => (
+      <AddedImage
+        src={image.src}
+        properties={image.properties}
+        key={index}
+        index={index}
+        selectedImage={this.selectImage}
+        deleteImage={this.deleteImage}
+        draggable={true}
+      />
+    ))}
+</Layer>
+
+                  </Stage>
+
+                  <Stage
+                    className="justify-content-center mb-5"
+                    width={stageWidth / 2}
+                    height={stageHeight}
+                    style={{
+                      border: '1px solid #ced4da',
+                      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                      backgroundColor: '#f8f9fa',
+                    }}
+                    ref={(node) => {
+                      this.stageRef = node;
+                    }}
+                  >
+                    <Layer>
+  <CanvasImage
+    src={backgroundImageSrc ? backgroundImageSrc : src}
+    width={stageWidth}
+    triggerCors={triggerCors}
+    height={stageHeight}
+    draggable={true}
+  />
+  {images.stage2 &&
+    images.stage2.map((image, index) => (
+      <AddedImage
+        src={image.src}
+        properties={image.properties}
+        key={index}
+        index={index}
+        selectedImage={this.selectImage}
+        deleteImage={this.deleteImage}
+        draggable={true}
+      />
+    ))}
+</Layer>
+
+                  </Stage>
+                </div>
               </Col>
             </Row>
           </Col>
